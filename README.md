@@ -12,5 +12,5 @@ go get github.com/afeld/tangle
 cd $GOPATH/src/github.com/afeld/tangle
 
 # run
-go run main.go
+go run main.go <url>
 ```
