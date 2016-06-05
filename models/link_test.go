@@ -2,6 +2,8 @@ package models_test
 
 import (
 	"fmt"
+	"net/http"
+	"net/http/httptest"
 	"net/url"
 
 	. "github.com/afeld/tangle/models"
@@ -48,6 +50,38 @@ var _ = Describe("Link", func() {
 			dest, err := link.AbsDestURL()
 			Expect(err).NotTo(HaveOccurred())
 			Expect(dest.String()).To(Equal("http://example.com/foo"))
+		})
+	})
+
+	Describe("IsValid", func() {
+		It("returns `true` when the URL exists", func() {
+			ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				w.WriteHeader(http.StatusOK)
+			}))
+			defer ts.Close()
+
+			sourceURL, _ := url.Parse("http://example.com/")
+
+			link := Link{
+				SourceURL: *sourceURL,
+				Node:      createAnchor(ts.URL),
+			}
+			Expect(link.IsValid()).To(BeTrue())
+		})
+
+		It("returns `false` when the URL 404s", func() {
+			ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				w.WriteHeader(http.StatusNotFound)
+			}))
+			defer ts.Close()
+
+			sourceURL, _ := url.Parse("http://example.com/")
+
+			link := Link{
+				SourceURL: *sourceURL,
+				Node:      createAnchor(ts.URL),
+			}
+			Expect(link.IsValid()).To(BeFalse())
 		})
 	})
 })
