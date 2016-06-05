@@ -26,9 +26,11 @@ var _ = Describe("Page", func() {
 
 			Expect(err).ToNot(HaveOccurred())
 			Expect(links).To(HaveLen(1))
-			link := links[0]
-			Expect(link.Host).To(Equal(tsURL.Host))
-			Expect(link.Path).To(Equal("/foo"))
+
+			dest, err := links[0].AbsDestURL()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(dest.Host).To(Equal(tsURL.Host))
+			Expect(dest.Path).To(Equal("/foo"))
 		})
 
 		It("handles no links being present", func() {

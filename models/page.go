@@ -9,6 +9,7 @@ import (
 	// using fork because of https://github.com/moovweb/gokogiri/pull/93#issuecomment-215582446
 	"github.com/jbowtie/gokogiri"
 	"github.com/jbowtie/gokogiri/html"
+	"github.com/jbowtie/gokogiri/xml"
 )
 
 type Page struct {
@@ -31,26 +32,26 @@ func (p *Page) getDoc() (doc *html.HtmlDocument, err error) {
 	return
 }
 
-func (p *Page) GetLinks() (links []*url.URL, err error) {
+func (p *Page) getAnchors() (anchors []xml.Node, err error) {
 	doc, err := p.getDoc()
 	if err != nil {
 		return
 	}
 
-	anchors, err := doc.Search("//a")
+	return doc.Search("//a[@href]")
+}
+
+func (p *Page) GetLinks() (links []Link, err error) {
+	anchors, err := p.getAnchors()
 	if err != nil {
 		return
 	}
-	links = make([]*url.URL, 0, len(anchors))
-	for _, anchor := range anchors {
-		link := anchor.Attr("href")
-		otherRelativeURL, _ := url.Parse(link)
-		if err != nil {
-			fmt.Println("Bad URL:", link)
-			continue
+	links = make([]Link, len(anchors))
+	for i, anchor := range anchors {
+		links[i] = Link{
+			SourceURL: *p.AbsURL,
+			Node: anchor,
 		}
-		otherAbsURL := p.AbsURL.ResolveReference(otherRelativeURL)
-		links = append(links, otherAbsURL)
 	}
 	return
 }
