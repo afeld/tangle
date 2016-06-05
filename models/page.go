@@ -41,13 +41,15 @@ func (p *Page) GetLinks() (links []*url.URL, err error) {
 	if err != nil {
 		return
 	}
-	links = make([]*url.URL, len(anchors), len(anchors))
-	for i, anchor := range anchors {
+	links = make([]*url.URL, 0, len(anchors))
+	for _, anchor := range anchors {
 		link := anchor.Attr("href")
 		otherRelativeURL, _ := url.Parse(link)
 		if err == nil {
 			otherAbsURL := p.AbsURL.ResolveReference(otherRelativeURL)
-			links[i] = otherAbsURL
+			links = append(links, otherAbsURL)
+		} else {
+			fmt.Println("Bad URL:", link)
 		}
 	}
 	return
