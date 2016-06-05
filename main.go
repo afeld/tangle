@@ -28,15 +28,32 @@ func getDoc(url string) (doc *html.HtmlDocument, err error) {
 	return
 }
 
+func getLinks(url string) (links []string, err error) {
+	doc, err := getDoc(url)
+	if err != nil {
+		return
+	}
+
+	anchors, err := doc.Search("//a")
+	if err != nil {
+		return
+	}
+	links = make([]string, len(anchors), len(anchors))
+	for i, anchor := range anchors {
+		links[i] = anchor.Attr("href")
+	}
+	return
+}
+
 func main() {
 	url := os.Args[1]
 	if len(os.Args) != 2 {
 		log.Fatal("Usage:\n\n\tgo run main.go <url>\n\n")
 	}
 
-	xmlDoc, err := getDoc(url)
+	links, err := getLinks(url)
 	if err != nil {
 		log.Fatalln(err)
 	}
-	fmt.Println(xmlDoc)
+	fmt.Println(links)
 }
