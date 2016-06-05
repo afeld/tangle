@@ -19,12 +19,15 @@ func startURL() (u *url.URL) {
 	if err != nil {
 		log.Fatalln(err)
 	}
+	if !u.IsAbs() {
+		log.Fatalln("Must be an absolute URL.")
+	}
 	return
 }
 
 func startPage() (page models.Page) {
 	u := startURL()
-	page = models.Page{URL: u}
+	page = models.Page{AbsURL: u}
 	return
 }
 

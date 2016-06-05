@@ -12,11 +12,11 @@ import (
 )
 
 type Page struct {
-	URL *url.URL
+	AbsURL *url.URL
 }
 
 func (p *Page) getDoc() (doc *html.HtmlDocument, err error) {
-	resp, err := http.Get(p.URL.String())
+	resp, err := http.Get(p.AbsURL.String())
 	if err != nil {
 		return
 	}
@@ -44,9 +44,10 @@ func (p *Page) GetLinks() (links []*url.URL, err error) {
 	links = make([]*url.URL, len(anchors), len(anchors))
 	for i, anchor := range anchors {
 		link := anchor.Attr("href")
-		links[i], err = url.Parse(link)
-		if err != nil {
-			return
+		otherRelativeURL, _ := url.Parse(link)
+		if err == nil {
+			otherAbsURL := p.AbsURL.ResolveReference(otherRelativeURL)
+			links[i] = otherAbsURL
 		}
 	}
 	return
