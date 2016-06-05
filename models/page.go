@@ -1,7 +1,6 @@
 package models
 
 import (
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -21,7 +20,6 @@ func (p *Page) getDoc() (doc *html.HtmlDocument, err error) {
 	if err != nil {
 		return
 	}
-	fmt.Println("Request complete: ", resp.StatusCode)
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {

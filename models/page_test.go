@@ -3,8 +3,8 @@ package models_test
 import (
 	"fmt"
 	"net/http"
-	"net/url"
 	"net/http/httptest"
+	"net/url"
 
 	. "github.com/afeld/tangle/models"
 
@@ -16,7 +16,7 @@ var _ = Describe("Page", func() {
 	Describe("GetLinks", func() {
 		It("returns the links from the page", func() {
 			ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				fmt.Fprintln(w, `<a href="foo">`)
+				fmt.Fprintln(w, `<a href="foo"></a>`)
 			}))
 			defer ts.Close()
 
