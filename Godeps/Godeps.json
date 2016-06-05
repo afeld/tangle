@@ -1,0 +1,37 @@
+{
+	"ImportPath": "github.com/afeld/tangle",
+	"GoVersion": "go1.6",
+	"GodepVersion": "v71",
+	"Deps": [
+		{
+			"ImportPath": "github.com/jbowtie/gokogiri",
+			"Comment": "4.6.41-95-g94c3178",
+			"Rev": "94c317865760e3580e90e49c08ca54953ef1b7cb"
+		},
+		{
+			"ImportPath": "github.com/jbowtie/gokogiri/help",
+			"Comment": "4.6.41-95-g94c3178",
+			"Rev": "94c317865760e3580e90e49c08ca54953ef1b7cb"
+		},
+		{
+			"ImportPath": "github.com/jbowtie/gokogiri/html",
+			"Comment": "4.6.41-95-g94c3178",
+			"Rev": "94c317865760e3580e90e49c08ca54953ef1b7cb"
+		},
+		{
+			"ImportPath": "github.com/jbowtie/gokogiri/util",
+			"Comment": "4.6.41-95-g94c3178",
+			"Rev": "94c317865760e3580e90e49c08ca54953ef1b7cb"
+		},
+		{
+			"ImportPath": "github.com/jbowtie/gokogiri/xml",
+			"Comment": "4.6.41-95-g94c3178",
+			"Rev": "94c317865760e3580e90e49c08ca54953ef1b7cb"
+		},
+		{
+			"ImportPath": "github.com/jbowtie/gokogiri/xpath",
+			"Comment": "4.6.41-95-g94c3178",
+			"Rev": "94c317865760e3580e90e49c08ca54953ef1b7cb"
+		}
+	]
+}
