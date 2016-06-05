@@ -31,7 +31,7 @@ func (p *Page) getDoc() (doc *html.HtmlDocument, err error) {
 	return
 }
 
-func (p *Page) GetLinks() (links []string, err error) {
+func (p *Page) GetLinks() (links []*url.URL, err error) {
 	doc, err := p.getDoc()
 	if err != nil {
 		return
@@ -41,9 +41,13 @@ func (p *Page) GetLinks() (links []string, err error) {
 	if err != nil {
 		return
 	}
-	links = make([]string, len(anchors), len(anchors))
+	links = make([]*url.URL, len(anchors), len(anchors))
 	for i, anchor := range anchors {
-		links[i] = anchor.Attr("href")
+		link := anchor.Attr("href")
+		links[i], err = url.Parse(link)
+		if err != nil {
+			return
+		}
 	}
 	return
 }

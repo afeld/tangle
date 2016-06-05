@@ -9,7 +9,7 @@ import (
 	"github.com/afeld/tangle/models"
 )
 
-func main() {
+func startURL() (u *url.URL) {
 	rawURL := os.Args[1]
 	if len(os.Args) != 2 {
 		log.Fatal("Usage:\n\n\tgo run main.go <url>\n\n")
@@ -19,8 +19,17 @@ func main() {
 	if err != nil {
 		log.Fatalln(err)
 	}
-	page := models.Page{URL: u}
+	return
+}
 
+func startPage() (page models.Page) {
+	u := startURL()
+	page = models.Page{URL: u}
+	return
+}
+
+func main() {
+	page := startPage()
 	links, err := page.GetLinks()
 	if err != nil {
 		log.Fatalln(err)
