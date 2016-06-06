@@ -25,17 +25,25 @@ func startURL() (u *url.URL) {
 	return
 }
 
-func startPage() (page models.Page) {
-	u := startURL()
-	page = models.Page{AbsURL: u}
-	return
-}
-
 func main() {
-	page := startPage()
+	u := startURL()
+	page := models.Page{AbsURL: u}
+
+	fmt.Println("Checking for broken links...")
+
 	links, err := page.GetLinks()
 	if err != nil {
 		log.Fatalln(err)
 	}
-	fmt.Println(links)
+	fmt.Printf("Number of links found: %d\n", len(links))
+
+	numBrokenLinks := 0
+	for _, link := range links {
+		if !link.IsValid() {
+			numBrokenLinks++
+			dest, _ := link.DestURL()
+			fmt.Printf("%s line %d has broken link to %s.\n", u.String(), link.Node.LineNumber(), dest)
+		}
+	}
+	fmt.Printf("Number of broken links: %d\n", numBrokenLinks)
 }
