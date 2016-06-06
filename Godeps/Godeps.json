@@ -7,6 +7,10 @@
 	],
 	"Deps": [
 		{
+			"ImportPath": "github.com/jarcoal/httpmock",
+			"Rev": "145b10d659265440f062c31ea15326166bae56ee"
+		},
+		{
 			"ImportPath": "github.com/jbowtie/gokogiri",
 			"Comment": "4.6.41-95-g94c3178",
 			"Rev": "94c317865760e3580e90e49c08ca54953ef1b7cb"

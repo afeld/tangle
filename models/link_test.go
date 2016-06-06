@@ -3,10 +3,11 @@ package models_test
 import (
 	"fmt"
 	"net/http"
-	"net/http/httptest"
 	"net/url"
 
 	. "github.com/afeld/tangle/models"
+
+	"github.com/jarcoal/httpmock"
 	// using fork because of https://github.com/moovweb/gokogiri/pull/93#issuecomment-215582446
 	"github.com/jbowtie/gokogiri"
 	"github.com/jbowtie/gokogiri/xml"
@@ -22,6 +23,7 @@ func createAnchor(URL string) xml.Node {
 
 	nodes, err := doc.Search("/html/body/*")
 	Expect(err).NotTo(HaveOccurred())
+	Expect(nodes).To(HaveLen(1))
 
 	return nodes[0]
 }
@@ -55,31 +57,42 @@ var _ = Describe("Link", func() {
 
 	Describe("IsValid", func() {
 		It("returns `true` when the URL exists", func() {
-			ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				w.WriteHeader(http.StatusOK)
-			}))
-			defer ts.Close()
+			responder := httpmock.NewStringResponder(200, "")
+			httpmock.RegisterResponder("HEAD", "http://example2.com", responder)
 
 			sourceURL, _ := url.Parse("http://example.com/")
 
 			link := Link{
 				SourceURL: *sourceURL,
-				Node:      createAnchor(ts.URL),
+				Node:      createAnchor("http://example2.com"),
 			}
 			Expect(link.IsValid()).To(BeTrue())
 		})
 
 		It("returns `false` when the URL 404s", func() {
-			ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				w.WriteHeader(http.StatusNotFound)
-			}))
-			defer ts.Close()
+			responder := httpmock.NewStringResponder(404, "")
+			httpmock.RegisterResponder("HEAD", "http://example2.com", responder)
 
 			sourceURL, _ := url.Parse("http://example.com/")
 
 			link := Link{
 				SourceURL: *sourceURL,
-				Node:      createAnchor(ts.URL),
+				Node:      createAnchor("http://example2.com"),
+			}
+			Expect(link.IsValid()).To(BeFalse())
+		})
+
+		It("returns `false` for a connection failure", func() {
+			responder := func(req *http.Request) (*http.Response, error) {
+				return httpmock.ConnectionFailure(req)
+			}
+			httpmock.RegisterResponder("HEAD", "http://example2.com", responder)
+
+			sourceURL, _ := url.Parse("http://example.com/")
+
+			link := Link{
+				SourceURL: *sourceURL,
+				Node:      createAnchor("http://example2.com"),
 			}
 			Expect(link.IsValid()).To(BeFalse())
 		})
