@@ -27,9 +27,21 @@ func startURL() (u *url.URL) {
 	return
 }
 
+func checkLink(source *url.URL, link models.Link, wg *sync.WaitGroup, numBrokenLinks *uint32) {
+	defer wg.Done()
+
+	if !link.IsValid() {
+		// https://gobyexample.com/atomic-counters
+		atomic.AddUint32(numBrokenLinks, 1)
+
+		dest, _ := link.DestURL()
+		fmt.Printf("%s line %d has broken link to %s.\n", source.String(), link.Node.LineNumber(), dest)
+	}
+}
+
 func main() {
-	u := startURL()
-	page := models.Page{AbsURL: u}
+	source := startURL()
+	page := models.Page{AbsURL: source}
 
 	fmt.Println("Checking for broken links...")
 
@@ -44,17 +56,7 @@ func main() {
 
 	for _, link := range links {
 		wg.Add(1)
-		go func(l models.Link) {
-			defer wg.Done()
-
-			if !l.IsValid() {
-				// https://gobyexample.com/atomic-counters
-				atomic.AddUint32(&numBrokenLinks, 1)
-
-				dest, _ := l.DestURL()
-				fmt.Printf("%s line %d has broken link to %s.\n", u.String(), l.Node.LineNumber(), dest)
-			}
-		}(link)
+		go checkLink(source, link, &wg, &numBrokenLinks)
 	}
 	wg.Wait()
 
