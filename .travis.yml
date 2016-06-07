@@ -4,4 +4,6 @@ go:
 # Dependencies live in /vendor/
 install: true
 # Skip vendor tests
-script: go test -v $(go list ./... | grep -v /vendor/)
+script:
+- go test -v $(go list ./... | grep -v /vendor/)
+- go build

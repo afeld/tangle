@@ -48,7 +48,7 @@ func (p *Page) GetLinks() (links []Link, err error) {
 	for i, anchor := range anchors {
 		links[i] = Link{
 			SourceURL: *p.AbsURL,
-			Node: anchor,
+			Node:      anchor,
 		}
 	}
 	return
