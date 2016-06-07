@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"os"
 	"sync"
+	"sync/atomic"
 
 	"github.com/afeld/tangle/models"
 )
@@ -38,8 +39,7 @@ func main() {
 	}
 	fmt.Printf("Number of links found: %d\n", len(links))
 
-	numBrokenLinks := 0
-	var counterMx sync.Mutex
+	var numBrokenLinks uint32 = 0
 	var wg sync.WaitGroup
 
 	for _, link := range links {
@@ -48,9 +48,8 @@ func main() {
 			defer wg.Done()
 
 			if !l.IsValid() {
-				counterMx.Lock()
-				numBrokenLinks++
-				counterMx.Unlock()
+				// https://gobyexample.com/atomic-counters
+				atomic.AddUint32(&numBrokenLinks, 1)
 
 				dest, _ := l.DestURL()
 				fmt.Printf("%s line %d has broken link to %s.\n", u.String(), l.Node.LineNumber(), dest)
