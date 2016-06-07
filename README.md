@@ -1,4 +1,4 @@
-# Tangle
+# Tangle [![Build Status](https://travis-ci.org/afeld/tangle.svg?branch=master)](https://travis-ci.org/afeld/tangle)
 
 A broken link checker for web sites.
 
