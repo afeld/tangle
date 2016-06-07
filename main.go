@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/url"
 	"os"
+	"sync"
 
 	"github.com/afeld/tangle/models"
 )
@@ -38,12 +39,25 @@ func main() {
 	fmt.Printf("Number of links found: %d\n", len(links))
 
 	numBrokenLinks := 0
+	var counterMx sync.Mutex
+	var wg sync.WaitGroup
+
 	for _, link := range links {
-		if !link.IsValid() {
-			numBrokenLinks++
-			dest, _ := link.DestURL()
-			fmt.Printf("%s line %d has broken link to %s.\n", u.String(), link.Node.LineNumber(), dest)
-		}
+		wg.Add(1)
+		go func(l models.Link) {
+			defer wg.Done()
+
+			if !l.IsValid() {
+				counterMx.Lock()
+				numBrokenLinks++
+				counterMx.Unlock()
+
+				dest, _ := l.DestURL()
+				fmt.Printf("%s line %d has broken link to %s.\n", u.String(), l.Node.LineNumber(), dest)
+			}
+		}(link)
 	}
+	wg.Wait()
+
 	fmt.Printf("Number of broken links: %d\n", numBrokenLinks)
 }
