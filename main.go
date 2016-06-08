@@ -29,9 +29,24 @@ func main() {
 	source := startURL()
 
 	fmt.Println("Checking for broken links...")
-	numBrokenLinks, err := scanner.ScanPage(source)
+	resultByLink, err := scanner.ScanPage(source)
 	if err != nil {
 		log.Fatalln(err)
 	}
+
+	fmt.Printf("Number of links found: %d\n", len(resultByLink))
+
+	numBrokenLinks := 0
+	for link, isValid := range resultByLink {
+		if !isValid {
+			numBrokenLinks++
+
+			source := link.SourceURL.String()
+			line := link.Node.LineNumber()
+			dest, _ := link.DestURL()
+			fmt.Printf("%s line %d has broken link to %s.\n", source, line, dest)
+		}
+	}
+
 	fmt.Printf("Number of broken links: %d\n", numBrokenLinks)
 }
