@@ -39,46 +39,28 @@ var _ = Describe("Link", func() {
 		})
 	})
 
-	Describe("IsValid", func() {
+	Describe("IsValidURL", func() {
 		It("returns `true` when the URL exists", func() {
 			responder := httpmock.NewStringResponder(200, "")
-			httpmock.RegisterResponder("HEAD", "http://example2.com", responder)
+			httpmock.RegisterResponder("HEAD", "http://example.com", responder)
 
-			sourceURL, _ := url.Parse("http://example.com/")
-
-			link := Link{
-				SourceURL: *sourceURL,
-				Node:      CreateAnchor("http://example2.com"),
-			}
-			Expect(link.IsValid()).To(BeTrue())
+			Expect(IsValidURL("http://example.com")).To(BeTrue())
 		})
 
 		It("returns `false` when the URL 404s", func() {
 			responder := httpmock.NewStringResponder(404, "")
-			httpmock.RegisterResponder("HEAD", "http://example2.com", responder)
+			httpmock.RegisterResponder("HEAD", "http://example.com", responder)
 
-			sourceURL, _ := url.Parse("http://example.com/")
-
-			link := Link{
-				SourceURL: *sourceURL,
-				Node:      CreateAnchor("http://example2.com"),
-			}
-			Expect(link.IsValid()).To(BeFalse())
+			Expect(IsValidURL("http://example.com")).To(BeFalse())
 		})
 
 		It("returns `false` for a connection failure", func() {
 			responder := func(req *http.Request) (*http.Response, error) {
 				return httpmock.ConnectionFailure(req)
 			}
-			httpmock.RegisterResponder("HEAD", "http://example2.com", responder)
+			httpmock.RegisterResponder("HEAD", "http://example.com", responder)
 
-			sourceURL, _ := url.Parse("http://example.com/")
-
-			link := Link{
-				SourceURL: *sourceURL,
-				Node:      CreateAnchor("http://example2.com"),
-			}
-			Expect(link.IsValid()).To(BeFalse())
+			Expect(IsValidURL("http://example.com")).To(BeFalse())
 		})
 	})
 })

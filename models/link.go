@@ -33,7 +33,11 @@ func (l *Link) IsValid() bool {
 	if err != nil {
 		return false
 	}
-	resp, err := http.Head(dest.String())
+	return IsValidURL(dest.String())
+}
+
+func IsValidURL(absUrl string) bool {
+	resp, err := http.Head(absUrl)
 	if err != nil {
 		return false
 	}
