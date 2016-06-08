@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"os"
 
+	"github.com/afeld/tangle/models"
 	"github.com/afeld/tangle/scanner"
 )
 
@@ -25,6 +26,13 @@ func startURL() (u *url.URL) {
 	return
 }
 
+func reportBrokenLink(link models.Link) {
+	source := link.SourceURL.String()
+	line := link.Node.LineNumber()
+	dest, _ := link.DestURL()
+	fmt.Printf("%s line %d has broken link to %s.\n", source, line, dest)
+}
+
 func main() {
 	source := startURL()
 
@@ -40,11 +48,7 @@ func main() {
 	for link, isValid := range resultByLink {
 		if !isValid {
 			numBrokenLinks++
-
-			source := link.SourceURL.String()
-			line := link.Node.LineNumber()
-			dest, _ := link.DestURL()
-			fmt.Printf("%s line %d has broken link to %s.\n", source, line, dest)
+			reportBrokenLink(link)
 		}
 	}
 
