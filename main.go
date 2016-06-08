@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/url"
 	"os"
@@ -26,8 +27,11 @@ func startURL() (u *url.URL) {
 
 func main() {
 	source := startURL()
-	err := scanner.ScanPage(source)
+
+	fmt.Println("Checking for broken links...")
+	numBrokenLinks, err := scanner.ScanPage(source)
 	if err != nil {
 		log.Fatalln(err)
 	}
+	fmt.Printf("Number of broken links: %d\n", numBrokenLinks)
 }

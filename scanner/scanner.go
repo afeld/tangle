@@ -33,9 +33,7 @@ func scanLinks(source *url.URL, links []models.Link) (numBroken uint32) {
 	return
 }
 
-func ScanPage(source *url.URL) (err error) {
-	fmt.Println("Checking for broken links...")
-
+func ScanPage(source *url.URL) (numBrokenLinks uint32, err error) {
 	page := models.Page{AbsURL: source}
 	links, err := page.GetLinks()
 	if err != nil {
@@ -43,8 +41,7 @@ func ScanPage(source *url.URL) (err error) {
 	}
 
 	fmt.Printf("Number of links found: %d\n", len(links))
-	numBrokenLinks := scanLinks(source, links)
-	fmt.Printf("Number of broken links: %d\n", numBrokenLinks)
+	numBrokenLinks = scanLinks(source, links)
 
 	return
 }
