@@ -39,26 +39,38 @@ func checkLink(source *url.URL, link models.Link, wg *sync.WaitGroup, numBrokenL
 	}
 }
 
-func main() {
-	source := startURL()
-	page := models.Page{AbsURL: source}
-
-	fmt.Println("Checking for broken links...")
-
-	links, err := page.GetLinks()
-	if err != nil {
-		log.Fatalln(err)
-	}
-	fmt.Printf("Number of links found: %d\n", len(links))
-
-	var numBrokenLinks uint32 = 0
+func scanLinks(source *url.URL, links []models.Link) (numBroken uint32) {
 	var wg sync.WaitGroup
 
 	for _, link := range links {
 		wg.Add(1)
-		go checkLink(source, link, &wg, &numBrokenLinks)
+		go checkLink(source, link, &wg, &numBroken)
 	}
 	wg.Wait()
 
+	return
+}
+
+func scanPage(source *url.URL) (err error) {
+	fmt.Println("Checking for broken links...")
+
+	page := models.Page{AbsURL: source}
+	links, err := page.GetLinks()
+	if err != nil {
+		return
+	}
+
+	fmt.Printf("Number of links found: %d\n", len(links))
+	numBrokenLinks := scanLinks(source, links)
 	fmt.Printf("Number of broken links: %d\n", numBrokenLinks)
+
+	return
+}
+
+func main() {
+	source := startURL()
+	err := scanPage(source)
+	if err != nil {
+		log.Fatalln(err)
+	}
 }
