@@ -1,12 +1,12 @@
 package models_test
 
 import (
+	. "github.com/afeld/tangle/models"
+
 	"net/http"
 	"net/url"
 
 	. "github.com/afeld/tangle/helpers"
-	. "github.com/afeld/tangle/models"
-
 	"github.com/jarcoal/httpmock"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

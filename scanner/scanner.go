@@ -21,9 +21,9 @@ func checkLink(link models.Link, wg *sync.WaitGroup, numBrokenLinks *uint32) {
 	}
 }
 
+// scans the links in parallel
 func ScanLinks(links []models.Link) (numBroken uint32) {
 	var wg sync.WaitGroup
-
 	for _, link := range links {
 		wg.Add(1)
 		go checkLink(link, &wg, &numBroken)
