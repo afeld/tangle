@@ -2,7 +2,9 @@ package helpers
 
 import (
 	"fmt"
+	"net/url"
 
+	"github.com/afeld/tangle/models"
 	// using fork because of https://github.com/moovweb/gokogiri/pull/93#issuecomment-215582446
 	"github.com/jbowtie/gokogiri"
 	"github.com/jbowtie/gokogiri/xml"
@@ -20,4 +22,13 @@ func CreateAnchor(URL string) xml.Node {
 	Expect(nodes).To(HaveLen(1))
 
 	return nodes[0]
+}
+
+func CreateLink(dest string) models.Link {
+	source, _ := url.Parse("http://source.com")
+	node := CreateAnchor(dest)
+	return models.Link{
+		SourceURL: *source,
+		Node:      node,
+	}
 }

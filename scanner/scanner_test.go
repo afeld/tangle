@@ -18,18 +18,9 @@ func registerResponse(dest string, status int) {
 	httpmock.RegisterResponder("HEAD", dest, responder)
 }
 
-func createLink(dest string) Link {
-	source, _ := url.Parse("http://source.com")
-	node := CreateAnchor(dest)
-	return Link{
-		SourceURL: *source,
-		Node:      node,
-	}
-}
-
 func registerLink(dest string, status int) Link {
 	registerResponse(dest, status)
-	return createLink(dest)
+	return CreateLink(dest)
 }
 
 var _ = Describe("Scanner", func() {
@@ -55,8 +46,8 @@ var _ = Describe("Scanner", func() {
 			httpmock.RegisterResponder("HEAD", "http://ok.com", responder)
 
 			// two identical links that are different tags
-			dest1 := createLink("http://ok.com")
-			dest2 := createLink("http://ok.com")
+			dest1 := CreateLink("http://ok.com")
+			dest2 := CreateLink("http://ok.com")
 			Expect(dest1).ToNot(Equal(dest2))
 			links := []Link{dest1, dest2}
 
