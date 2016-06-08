@@ -7,24 +7,43 @@ import (
 	"github.com/afeld/tangle/models"
 )
 
-// scans the links in parallel
-func ScanLinks(links []models.Link) (resultByLink map[models.Link]bool) {
-	resultByLink = make(map[models.Link]bool)
+// Scans the URLs in parallel. Takes a Map as input so that the URLs are unique (the values on input are ignored). The Map is modified with the actual values.
+func scanURLs(resultByURL *map[url.URL]bool) {
 	mx := &sync.Mutex{}
 
 	var wg sync.WaitGroup
-	for _, link := range links {
+	for ur, _ := range *resultByURL {
 		wg.Add(1)
-		go func(l models.Link) {
+		go func(u url.URL) {
 			defer wg.Done()
 
-			isValid := l.IsValid()
+			isValid := models.IsValidURL(u.String())
 			mx.Lock()
-			resultByLink[l] = isValid
+			(*resultByURL)[u] = isValid
 			mx.Unlock()
-		}(link)
+		}(ur)
 	}
 	wg.Wait()
+
+	return
+}
+
+// scans the links in parallel
+func ScanLinks(links []models.Link) (resultByLink map[models.Link]bool) {
+	resultByURL := make(map[url.URL]bool)
+	for _, link := range links {
+		dest, _ := link.AbsDestURL()
+		// the value is arbitrary
+		resultByURL[*dest] = false
+	}
+
+	scanURLs(&resultByURL)
+
+	resultByLink = make(map[models.Link]bool)
+	for _, link := range links {
+		dest, _ := link.AbsDestURL()
+		resultByLink[link] = resultByURL[*dest]
+	}
 
 	return
 }

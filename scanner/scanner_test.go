@@ -3,10 +3,11 @@ package scanner_test
 import (
 	. "github.com/afeld/tangle/scanner"
 
+	"net/http"
 	"net/url"
 
-	. "github.com/afeld/tangle/models"
 	. "github.com/afeld/tangle/helpers"
+	. "github.com/afeld/tangle/models"
 	"github.com/jarcoal/httpmock"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -22,7 +23,7 @@ func createLink(dest string) Link {
 	node := CreateAnchor(dest)
 	return Link{
 		SourceURL: *source,
-		Node: node,
+		Node:      node,
 	}
 }
 
@@ -43,6 +44,28 @@ var _ = Describe("Scanner", func() {
 			Expect(len(resultByLink)).To(Equal(2))
 			Expect(resultByLink[dest1]).To(BeTrue())
 			Expect(resultByLink[dest2]).To(BeFalse())
+		})
+
+		It("only checks each URL once", func() {
+			hits := 0
+			responder := func(req *http.Request) (*http.Response, error) {
+				hits++
+				return httpmock.NewStringResponse(200, ""), nil
+			}
+			httpmock.RegisterResponder("HEAD", "http://ok.com", responder)
+
+			// two identical links that are different tags
+			dest1 := createLink("http://ok.com")
+			dest2 := createLink("http://ok.com")
+			Expect(dest1).ToNot(Equal(dest2))
+			links := []Link{dest1, dest2}
+
+			resultByLink := ScanLinks(links)
+
+			Expect(len(resultByLink)).To(Equal(2))
+			Expect(resultByLink[dest1]).To(BeTrue())
+			Expect(resultByLink[dest2]).To(BeTrue())
+			Expect(hits).To(Equal(1))
 		})
 	})
 
