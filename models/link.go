@@ -6,6 +6,8 @@ import (
 
 	// using fork because of https://github.com/moovweb/gokogiri/pull/93#issuecomment-215582446
 	"github.com/jbowtie/gokogiri/xml"
+
+	"github.com/PuerkitoBio/purell"
 )
 
 type Link struct {
@@ -20,12 +22,15 @@ func (l *Link) DestURL() (*url.URL, error) {
 }
 
 func (l *Link) AbsDestURL() (URL *url.URL, err error) {
-	relativeURL, err := l.DestURL()
+	URL, err = l.DestURL()
 	if err != nil {
 		return
 	}
-	URL = l.SourceURL.ResolveReference(relativeURL)
-	return
+	// make it absolute
+	URL = l.SourceURL.ResolveReference(URL)
+	// normalize
+	urlStr := purell.NormalizeURL(URL, purell.FlagsSafe)
+	return url.Parse(urlStr)
 }
 
 func (l *Link) IsValid() bool {

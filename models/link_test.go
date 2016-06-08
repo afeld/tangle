@@ -15,15 +15,10 @@ import (
 var _ = Describe("Link", func() {
 	Describe("AbsDestURL", func() {
 		It("returns the full URL if already absolute", func() {
-			sourceURL, _ := url.Parse("http://example.com/")
-			link := Link{
-				SourceURL: *sourceURL,
-				Node:      CreateAnchor("http://example2.com/"),
-			}
-
+			link := CreateLink("http://example.com/")
 			dest, err := link.AbsDestURL()
 			Expect(err).NotTo(HaveOccurred())
-			Expect(dest.String()).To(Equal("http://example2.com/"))
+			Expect(dest.String()).To(Equal("http://example.com/"))
 		})
 
 		It("resolves relative URLs", func() {
@@ -36,6 +31,13 @@ var _ = Describe("Link", func() {
 			dest, err := link.AbsDestURL()
 			Expect(err).NotTo(HaveOccurred())
 			Expect(dest.String()).To(Equal("http://example.com/foo"))
+		})
+
+		It("normalizes URLs", func() {
+			link := CreateLink("http://eXaMple.com:80/")
+			dest, err := link.AbsDestURL()
+			Expect(err).NotTo(HaveOccurred())
+			Expect(dest.String()).To(Equal("http://example.com/"))
 		})
 	})
 

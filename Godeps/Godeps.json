@@ -3,9 +3,21 @@
 	"GoVersion": "go1.6",
 	"GodepVersion": "v71",
 	"Packages": [
-		"./..."
+		"github.com/afeld/tangle",
+		"github.com/afeld/tangle/helpers",
+		"github.com/afeld/tangle/models",
+		"github.com/afeld/tangle/scanner"
 	],
 	"Deps": [
+		{
+			"ImportPath": "github.com/PuerkitoBio/purell",
+			"Comment": "v0.1.0-25-g1d5d1cf",
+			"Rev": "1d5d1cfad45d42ec5f81fa8ef23de09cebc6dcc3"
+		},
+		{
+			"ImportPath": "github.com/PuerkitoBio/urlesc",
+			"Rev": "5fa9ff0392746aeae1c4b37fcc42c65afa7a9587"
+		},
 		{
 			"ImportPath": "github.com/jarcoal/httpmock",
 			"Rev": "145b10d659265440f062c31ea15326166bae56ee"
