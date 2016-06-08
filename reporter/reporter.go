@@ -14,8 +14,6 @@ func reportBrokenLink(link models.Link) {
 }
 
 func ReportResults(resultByLink map[models.Link]bool) {
-	fmt.Printf("Number of links found: %d\n", len(resultByLink))
-
 	numBrokenLinks := 0
 	for link, isValid := range resultByLink {
 		if !isValid {
@@ -24,5 +22,5 @@ func ReportResults(resultByLink map[models.Link]bool) {
 		}
 	}
 
-	fmt.Printf("Number of broken links: %d\n", numBrokenLinks)
+	fmt.Printf("Number of broken links: %d/%d\n", numBrokenLinks, len(resultByLink))
 }
