@@ -40,4 +40,22 @@ var _ = Describe("Scanner", func() {
 			Expect(numBrokenLinks).To(Equal(uint32(1)))
 		})
 	})
+
+	Describe("ScanPage", func() {
+		It("returns the number of broken links", func() {
+			registerResponse("http://ok.com", 200)
+			registerResponse("http://not-ok.com", 404)
+
+			source, _ := url.Parse("http://source.com")
+			responder := httpmock.NewStringResponder(200, `
+				<a href="http://ok.com"></a>
+				<a href="http://not-ok.com"></a>
+			`)
+			httpmock.RegisterResponder("GET", "http://source.com", responder)
+
+			numBrokenLinks, err := ScanPage(source)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(numBrokenLinks).To(Equal(uint32(1)))
+		})
+	})
 })
