@@ -9,7 +9,7 @@ import (
 	"github.com/afeld/tangle/models"
 )
 
-func checkLink(source *url.URL, link models.Link, wg *sync.WaitGroup, numBrokenLinks *uint32) {
+func checkLink(link models.Link, wg *sync.WaitGroup, numBrokenLinks *uint32) {
 	defer wg.Done()
 
 	if !link.IsValid() {
@@ -17,16 +17,16 @@ func checkLink(source *url.URL, link models.Link, wg *sync.WaitGroup, numBrokenL
 		atomic.AddUint32(numBrokenLinks, 1)
 
 		dest, _ := link.DestURL()
-		fmt.Printf("%s line %d has broken link to %s.\n", source.String(), link.Node.LineNumber(), dest)
+		fmt.Printf("%s line %d has broken link to %s.\n", link.SourceURL.String(), link.Node.LineNumber(), dest)
 	}
 }
 
-func scanLinks(source *url.URL, links []models.Link) (numBroken uint32) {
+func ScanLinks(links []models.Link) (numBroken uint32) {
 	var wg sync.WaitGroup
 
 	for _, link := range links {
 		wg.Add(1)
-		go checkLink(source, link, &wg, &numBroken)
+		go checkLink(link, &wg, &numBroken)
 	}
 	wg.Wait()
 
@@ -41,7 +41,7 @@ func ScanPage(source *url.URL) (numBrokenLinks uint32, err error) {
 	}
 
 	fmt.Printf("Number of links found: %d\n", len(links))
-	numBrokenLinks = scanLinks(source, links)
+	numBrokenLinks = ScanLinks(links)
 
 	return
 }
