@@ -65,17 +65,27 @@ var _ = Describe("Scanner", func() {
 			registerResponse("http://ok.com", 200)
 			registerResponse("http://not-ok.com", 404)
 
-			source, _ := url.Parse("http://source.com")
+			sourceStr := "http://source.com"
+			source, _ := url.Parse(sourceStr)
 			responder := httpmock.NewStringResponder(200, `
 				<a href="http://ok.com"></a>
 				<a href="http://not-ok.com"></a>
 				<a href="http://not-ok.com"></a>
 			`)
-			httpmock.RegisterResponder("GET", "http://source.com", responder)
+			httpmock.RegisterResponder("GET", sourceStr, responder)
 
 			resultByLink, err := ScanPage(source)
+
 			Expect(err).ToNot(HaveOccurred())
 			Expect(len(resultByLink)).To(Equal(3))
+			for link, result := range resultByLink {
+				dest, _ := link.DestURL()
+				if dest.Host == "ok.com" {
+					Expect(result).To(BeTrue())
+				} else {
+					Expect(result).To(BeFalse())
+				}
+			}
 		})
 	})
 })
