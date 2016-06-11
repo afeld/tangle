@@ -33,6 +33,15 @@ func (l *Link) AbsDestURL() (URL *url.URL, err error) {
 	return url.Parse(urlStr)
 }
 
+func (l *Link) IsExternal() (result bool, err error) {
+	dest, err := l.AbsDestURL()
+	if err != nil {
+		return
+	}
+	result = dest.Host != l.SourceURL.Host
+	return
+}
+
 func (l *Link) IsValid() bool {
 	dest, err := l.AbsDestURL()
 	if err != nil {

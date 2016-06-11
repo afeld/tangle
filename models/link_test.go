@@ -41,6 +41,18 @@ var _ = Describe("Link", func() {
 		})
 	})
 
+	Describe("IsExternal", func() {
+		It("returns `false` when the host matches", func() {
+			link := CreateLink("http://source.com")
+			Expect(link.IsExternal()).To(BeFalse())
+		})
+
+		It("returns `true` when the host doesn't match", func() {
+			link := CreateLink("http://external.com")
+			Expect(link.IsExternal()).To(BeTrue())
+		})
+	})
+
 	Describe("IsValidURL", func() {
 		It("returns `true` when the URL exists", func() {
 			responder := httpmock.NewStringResponder(200, "")
