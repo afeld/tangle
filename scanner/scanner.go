@@ -48,13 +48,31 @@ func ScanLinks(links []models.Link) (resultByLink map[models.Link]bool) {
 	return
 }
 
-func ScanPage(source *url.URL) (resultByLink map[models.Link]bool, err error) {
+func internalLinks(links []models.Link) []models.Link {
+	filteredLinks := make([]models.Link, 0, len(links))
+	for _, link := range links {
+		isExternal, _ := link.IsExternal()
+		if !isExternal {
+			filteredLinks = append(filteredLinks, link)
+		}
+	}
+	return filteredLinks
+}
+
+func ScanPage(source *url.URL, disableExternal bool) (resultByLink map[models.Link]bool, err error) {
 	page := models.Page{AbsURL: source}
 	links, err := page.GetLinks()
 	if err != nil {
 		return
 	}
 
-	resultByLink = ScanLinks(links)
+	var filteredLinks []models.Link
+	if disableExternal {
+		filteredLinks = internalLinks(links)
+	} else {
+		filteredLinks = links
+	}
+
+	resultByLink = ScanLinks(filteredLinks)
 	return
 }

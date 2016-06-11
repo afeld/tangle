@@ -13,4 +13,7 @@ cd $GOPATH/src/github.com/afeld/tangle
 
 # run
 go run main.go <url>
+
+# optionally, disable external link checking
+go run main.go -disable-external <url>
 ```

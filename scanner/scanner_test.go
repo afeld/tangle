@@ -74,7 +74,7 @@ var _ = Describe("Scanner", func() {
 			`)
 			httpmock.RegisterResponder("GET", sourceStr, responder)
 
-			resultByLink, err := ScanPage(source)
+			resultByLink, err := ScanPage(source, false)
 
 			Expect(err).ToNot(HaveOccurred())
 			Expect(len(resultByLink)).To(Equal(3))
@@ -86,6 +86,20 @@ var _ = Describe("Scanner", func() {
 					Expect(result).To(BeFalse())
 				}
 			}
+		})
+
+		It("ignores external links, when specified", func() {
+			sourceStr := "http://source.com"
+			source, _ := url.Parse(sourceStr)
+			responder := httpmock.NewStringResponder(200, `
+				<a href="http://external.com"></a>
+			`)
+			httpmock.RegisterResponder("GET", sourceStr, responder)
+
+			resultByLink, err := ScanPage(source, true)
+
+			Expect(err).ToNot(HaveOccurred())
+			Expect(len(resultByLink)).To(Equal(0))
 		})
 	})
 })

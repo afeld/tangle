@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"net/url"
@@ -11,11 +12,13 @@ import (
 )
 
 func startURL() (u *url.URL) {
-	rawURL := os.Args[1]
-	if len(os.Args) != 2 {
-		log.Fatal("Usage:\n\n\tgo run main.go <url>\n\n")
+	if flag.NArg() != 1 {
+		fmt.Print("Not enough arguments. ")
+		showUsage()
+		os.Exit(1)
 	}
 
+	rawURL := flag.Arg(0)
 	u, err := url.Parse(rawURL)
 	if err != nil {
 		log.Fatalln(err)
@@ -26,11 +29,21 @@ func startURL() (u *url.URL) {
 	return
 }
 
+func showUsage() {
+	fmt.Printf("Usage:\n\n  %s [options] <url>\n\nOptions:\n\n", os.Args[0])
+	flag.PrintDefaults()
+	fmt.Println("")
+}
+
 func main() {
+	disableExternal := flag.Bool("disable-external", false, "Disables external link checking.")
+	flag.Usage = showUsage
+	flag.Parse()
+
 	source := startURL()
 
 	fmt.Println("Checking for broken links...")
-	resultByLink, err := scanner.ScanPage(source)
+	resultByLink, err := scanner.ScanPage(source, *disableExternal)
 	if err != nil {
 		log.Fatalln(err)
 	}
