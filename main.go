@@ -43,7 +43,10 @@ func main() {
 	source := startURL()
 
 	fmt.Println("Checking for broken links...")
-	resultByLink, err := scanner.ScanPage(source, *disableExternal)
+	options := scanner.Options{
+		DisableExternal: *disableExternal,
+	}
+	resultByLink, err := scanner.ScanPage(source, options)
 	if err != nil {
 		log.Fatalln(err)
 	}

@@ -7,6 +7,10 @@ import (
 	"github.com/afeld/tangle/models"
 )
 
+type Options struct {
+	DisableExternal bool
+}
+
 // Scans the URLs in parallel. Takes a Map as input so that the URLs are unique (the values on input are ignored). The Map is modified with the actual values.
 func scanURLs(resultByURL *map[url.URL]bool) {
 	mx := &sync.Mutex{}
@@ -59,7 +63,7 @@ func internalLinks(links []models.Link) []models.Link {
 	return filteredLinks
 }
 
-func ScanPage(source *url.URL, disableExternal bool) (resultByLink map[models.Link]bool, err error) {
+func ScanPage(source *url.URL, options Options) (resultByLink map[models.Link]bool, err error) {
 	page := models.Page{AbsURL: source}
 	links, err := page.GetLinks()
 	if err != nil {
@@ -67,7 +71,7 @@ func ScanPage(source *url.URL, disableExternal bool) (resultByLink map[models.Li
 	}
 
 	var filteredLinks []models.Link
-	if disableExternal {
+	if options.DisableExternal {
 		filteredLinks = internalLinks(links)
 	} else {
 		filteredLinks = links

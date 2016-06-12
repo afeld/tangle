@@ -74,7 +74,7 @@ var _ = Describe("Scanner", func() {
 			`)
 			httpmock.RegisterResponder("GET", sourceStr, responder)
 
-			resultByLink, err := ScanPage(source, false)
+			resultByLink, err := ScanPage(source, Options{})
 
 			Expect(err).ToNot(HaveOccurred())
 			Expect(len(resultByLink)).To(Equal(3))
@@ -96,7 +96,8 @@ var _ = Describe("Scanner", func() {
 			`)
 			httpmock.RegisterResponder("GET", sourceStr, responder)
 
-			resultByLink, err := ScanPage(source, true)
+			options := Options{DisableExternal: true}
+			resultByLink, err := ScanPage(source, options)
 
 			Expect(err).ToNot(HaveOccurred())
 			Expect(len(resultByLink)).To(Equal(0))
