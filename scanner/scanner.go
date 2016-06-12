@@ -11,42 +11,56 @@ type Options struct {
 	DisableExternal bool
 }
 
-// Scans the URLs in parallel. Takes a Map as input so that the URLs are unique (the values on input are ignored). The Map is modified with the actual values.
-func scanURLs(resultByURL *map[url.URL]bool) {
-	mx := &sync.Mutex{}
+type resultSet struct {
+	ResultByURL map[url.URL]bool
+	Mx sync.Mutex
+	Wg sync.WaitGroup
+}
 
-	var wg sync.WaitGroup
-	for ur, _ := range *resultByURL {
-		wg.Add(1)
+// not thread-safe
+func (r *resultSet) resultFor(link models.Link) bool {
+	dest, _ := link.AbsDestURL()
+	return r.ResultByURL[*dest]
+}
+
+func newResultSet() resultSet {
+	return resultSet{
+		ResultByURL: make(map[url.URL]bool),
+	}
+}
+
+// Scans the URLs in parallel. Takes a Map as input so that the URLs are unique (the values on input are ignored). The Map is modified with the actual values.
+func scanURLs(results *resultSet) {
+	for ur, _ := range results.ResultByURL {
+		results.Wg.Add(1)
 		go func(u url.URL) {
-			defer wg.Done()
+			defer results.Wg.Done()
 
 			isValid := models.IsValidURL(u.String())
-			mx.Lock()
-			(*resultByURL)[u] = isValid
-			mx.Unlock()
+			results.Mx.Lock()
+			results.ResultByURL[u] = isValid
+			results.Mx.Unlock()
 		}(ur)
 	}
-	wg.Wait()
+	results.Wg.Wait()
 
 	return
 }
 
 // scans the links in parallel
 func ScanLinks(links []models.Link) (resultByLink map[models.Link]bool) {
-	resultByURL := make(map[url.URL]bool)
+	results := newResultSet()
 	for _, link := range links {
 		dest, _ := link.AbsDestURL()
 		// the value is arbitrary
-		resultByURL[*dest] = false
+		results.ResultByURL[*dest] = false
 	}
 
-	scanURLs(&resultByURL)
+	scanURLs(&results)
 
 	resultByLink = make(map[models.Link]bool)
 	for _, link := range links {
-		dest, _ := link.AbsDestURL()
-		resultByLink[link] = resultByURL[*dest]
+		resultByLink[link] = results.resultFor(link)
 	}
 
 	return
