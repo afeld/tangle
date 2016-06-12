@@ -1,6 +1,7 @@
 package scanner
 
 import (
+	"fmt"
 	"net/url"
 	"sync"
 
@@ -9,90 +10,128 @@ import (
 
 type Options struct {
 	DisableExternal bool
+	Recursive       bool
 }
 
-type resultSet struct {
-	ResultByURL map[url.URL]bool
-	Mx sync.Mutex
-	Wg sync.WaitGroup
+type linkResult struct {
+	Link models.Link
+	Found bool
 }
 
-// not thread-safe
-func (r *resultSet) resultFor(link models.Link) bool {
-	dest, _ := link.AbsDestURL()
-	return r.ResultByURL[*dest]
-}
-
-func newResultSet() resultSet {
-	return resultSet{
-		ResultByURL: make(map[url.URL]bool),
+// slow method
+func scanLink(link models.Link, results chan<- linkResult) {
+	// slow method
+	valid := link.IsValid()
+	result := linkResult{
+		Link: link,
+		Found: valid,
 	}
+	results <- result
 }
 
-func scanURL(u url.URL, results *resultSet) {
-	defer results.Wg.Done()
-
-	isValid := models.IsValidURL(u.String())
-	results.Mx.Lock()
-	results.ResultByURL[u] = isValid
-	results.Mx.Unlock()
-}
-
-// Scans the URLs in parallel. Takes a Map as input so that the URLs are unique (the values on input are ignored). The Map is modified with the actual values.
-func scanURLs(results *resultSet) {
-	results.Wg.Add(len(results.ResultByURL))
-	for ur, _ := range results.ResultByURL {
-		go scanURL(ur, results)
+// slow method
+func findLinks(page models.Page, newLinks chan<- models.Link, errors chan<- error) {
+	// slow method
+	links, err := page.GetLinks()
+	if err != nil {
+		errors <- err
+		return
 	}
-	results.Wg.Wait()
 
-	return
-}
-
-// scans the links in parallel
-func ScanLinks(links []models.Link) (resultByLink map[models.Link]bool) {
-	results := newResultSet()
 	for _, link := range links {
-		dest, _ := link.AbsDestURL()
-		// the value is arbitrary
-		results.ResultByURL[*dest] = false
+		newLinks <- link
 	}
-
-	scanURLs(&results)
-
-	resultByLink = make(map[models.Link]bool)
-	for _, link := range links {
-		resultByLink[link] = results.resultFor(link)
-	}
-
-	return
 }
 
-func internalLinks(links []models.Link) []models.Link {
-	filteredLinks := make([]models.Link, 0, len(links))
-	for _, link := range links {
-		isExternal, _ := link.IsExternal()
-		if !isExternal {
-			filteredLinks = append(filteredLinks, link)
+func newPagesLoop(wg *sync.WaitGroup, newPages <-chan models.Page, newLinks chan<- models.Link, errors chan<- error) {
+	for page := range newPages {
+		wg.Add(1)
+		go func(p models.Page) {
+			findLinks(p, newLinks, errors)
+			wg.Done()
+		}(page)
+	}
+}
+
+func recurse(link models.Link, newPages chan<- models.Page) (err error) {
+	dest, err := link.AbsDestURL()
+	if err != nil {
+		return err
+	}
+	// TODO make sure this page hasn't been seen before
+	page := models.Page{AbsURL: dest}
+	newPages <- page
+
+	return nil
+}
+
+func handleNewLink(wg *sync.WaitGroup, link models.Link, options Options, results chan<- linkResult, newPages chan<- models.Page) error {
+	isExternal, err := link.IsExternal()
+	if err != nil {
+		return err
+	}
+
+	if !options.DisableExternal || !isExternal {
+		wg.Add(1)
+		go func() {
+			scanLink(link, results)
+			wg.Done()
+		}()
+
+		if options.Recursive {
+			return recurse(link, newPages)
 		}
 	}
-	return filteredLinks
+
+	return nil
+}
+
+func newLinksLoop(wg *sync.WaitGroup, options Options, newLinks <-chan models.Link, newPages chan<- models.Page, results chan<- linkResult, errors chan<- error) {
+	for link := range newLinks {
+		err := handleNewLink(wg, link, options, results, newPages)
+		if err != nil {
+			errors <- err
+		}
+	}
+}
+
+func recursiveScan(startPage models.Page, options Options) (resultByLink map[models.Link]bool) {
+	resultByLink = make(map[models.Link]bool)
+	var wg sync.WaitGroup
+
+	newPages := make(chan models.Page)
+	newLinks := make(chan models.Link)
+	newResults := make(chan linkResult)
+	errors := make(chan error)
+
+	defer close(newPages)
+	defer close(newLinks)
+	defer close(newResults)
+	defer close(errors)
+
+	go newPagesLoop(&wg, newPages, newLinks, errors)
+	go newLinksLoop(&wg, options, newLinks, newPages, newResults, errors)
+	go func() {
+		for result := range newResults {
+			resultByLink[result.Link] = result.Found
+		}
+	}()
+	go func() {
+		for err := range errors {
+			// TODO do something with these
+			fmt.Println(err)
+		}
+	}()
+
+	// kick off the scan
+	newPages <- startPage
+	wg.Wait()
+
+	return
 }
 
 func ScanPage(source *url.URL, options Options) (resultByLink map[models.Link]bool, err error) {
 	page := models.Page{AbsURL: source}
-	links, err := page.GetLinks()
-	if err != nil {
-		return
-	}
-
-	var filteredLinks []models.Link
-	if options.DisableExternal {
-		filteredLinks = internalLinks(links)
-	} else {
-		filteredLinks = links
-	}
-
-	resultByLink = ScanLinks(filteredLinks)
-	return
+	// TODO return error(s)
+	return recursiveScan(page, options), nil
 }
