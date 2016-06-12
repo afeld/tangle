@@ -29,18 +29,20 @@ func newResultSet() resultSet {
 	}
 }
 
+func scanURL(u url.URL, results *resultSet) {
+	defer results.Wg.Done()
+
+	isValid := models.IsValidURL(u.String())
+	results.Mx.Lock()
+	results.ResultByURL[u] = isValid
+	results.Mx.Unlock()
+}
+
 // Scans the URLs in parallel. Takes a Map as input so that the URLs are unique (the values on input are ignored). The Map is modified with the actual values.
 func scanURLs(results *resultSet) {
+	results.Wg.Add(len(results.ResultByURL))
 	for ur, _ := range results.ResultByURL {
-		results.Wg.Add(1)
-		go func(u url.URL) {
-			defer results.Wg.Done()
-
-			isValid := models.IsValidURL(u.String())
-			results.Mx.Lock()
-			results.ResultByURL[u] = isValid
-			results.Mx.Unlock()
-		}(ur)
+		go scanURL(ur, results)
 	}
 	results.Wg.Wait()
 
