@@ -36,16 +36,14 @@ func showUsage() {
 }
 
 func main() {
-	disableExternal := flag.Bool("disable-external", false, "Disables external link checking.")
+	options := scanner.Options{}
+	flag.BoolVar(&options.DisableExternal, "disable-external", false, "Disables external link checking.")
 	flag.Usage = showUsage
 	flag.Parse()
 
 	source := startURL()
 
 	fmt.Println("Checking for broken links...")
-	options := scanner.Options{
-		DisableExternal: *disableExternal,
-	}
 	resultByLink, err := scanner.ScanPage(source, options)
 	if err != nil {
 		log.Fatalln(err)
