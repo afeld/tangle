@@ -17,3 +17,10 @@ go run main.go <url>
 # optionally, disable external link checking
 go run main.go -disable-external <url>
 ```
+
+## See also
+
+* [404finder](https://fourohfourtracker.herokuapp.com/)
+* [HTML Proofer](https://github.com/gjtorikian/html-proofer)
+* [LinkChecker](https://wummel.github.io/linkchecker/)
+* [W3C Link Checker](https://validator.w3.org/checklink)
